@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, UserRole, AuthContextType } from '../types';
-import { users } from '../data/users';
+import { authAPI, setTokens, clearTokens } from '../config/api';
+import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
 
 // Create Auth Context
@@ -8,7 +9,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Local storage keys
 const USER_STORAGE_KEY = 'business_nexus_user';
-const RESET_TOKEN_KEY = 'business_nexus_reset_token';
 
 // Auth Provider Component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -18,143 +18,141 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check for stored user on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+    const accessToken = localStorage.getItem('accessToken');
+    
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      
+      // Initialize socket connection if user is logged in
+      if (accessToken) {
+        socketService.connect().catch(console.error);
+      }
     }
     setIsLoading(false);
   }, []);
 
-  // Mock login function - in a real app, this would make an API call
+  // Login function
   const login = async (email: string, password: string, role: UserRole): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await authAPI.login({ email, password, role });
+      const { user: userData, accessToken, refreshToken } = response.data.data;
       
-      // Find user with matching email and role
-      const foundUser = users.find(u => u.email === email && u.role === role);
+      // Store tokens and user data
+      setTokens(accessToken, refreshToken);
+      setUser(userData);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
       
-      if (foundUser) {
-        setUser(foundUser);
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(foundUser));
-        toast.success('Successfully logged in!');
-      } else {
-        throw new Error('Invalid credentials or user not found');
-      }
+      // Initialize socket connection
+      await socketService.connect();
+      
+      toast.success('Successfully logged in!');
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Mock register function - in a real app, this would make an API call
+  // Register function
   const register = async (name: string, email: string, password: string, role: UserRole): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if email already exists
-      if (users.some(u => u.email === email)) {
-        throw new Error('Email already in use');
-      }
-      
-      // Create new user
-      const newUser: User = {
-        id: `${role[0]}${users.length + 1}`,
+      // Prepare registration data based on role
+      const registrationData = {
         name,
         email,
+        password,
         role,
-        avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-        bio: '',
-        isOnline: true,
-        createdAt: new Date().toISOString()
+        // Add default values for role-specific fields
+        ...(role === 'entrepreneur' ? {
+          startupName: 'My Startup',
+          pitchSummary: 'Building the next big thing',
+          fundingNeeded: '$100K',
+          industry: 'Technology',
+          location: 'San Francisco, CA',
+          foundedYear: new Date().getFullYear(),
+          teamSize: 1
+        } : {
+          investmentInterests: ['Technology'],
+          investmentStage: ['Seed'],
+          portfolioCompanies: [],
+          totalInvestments: 0,
+          minimumInvestment: '$10K',
+          maximumInvestment: '$100K'
+        })
       };
       
-      // Add user to mock data
-      users.push(newUser);
+      const response = await authAPI.register(registrationData);
+      const { user: userData, accessToken, refreshToken } = response.data.data;
       
-      setUser(newUser);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+      // Store tokens and user data
+      setTokens(accessToken, refreshToken);
+      setUser(userData);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+      
+      // Initialize socket connection
+      await socketService.connect();
+      
       toast.success('Account created successfully!');
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error('Registration error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Mock forgot password function
+  // Forgot password function
   const forgotPassword = async (email: string): Promise<void> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user exists
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        throw new Error('No account found with this email');
-      }
-      
-      // Generate reset token (in a real app, this would be a secure token)
-      const resetToken = Math.random().toString(36).substring(2, 15);
-      localStorage.setItem(RESET_TOKEN_KEY, resetToken);
-      
-      // In a real app, this would send an email
+      await authAPI.forgotPassword(email);
       toast.success('Password reset instructions sent to your email');
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error('Forgot password error:', error);
       throw error;
     }
   };
 
-  // Mock reset password function
+  // Reset password function
   const resetPassword = async (token: string, newPassword: string): Promise<void> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Verify token
-      const storedToken = localStorage.getItem(RESET_TOKEN_KEY);
-      if (token !== storedToken) {
-        throw new Error('Invalid or expired reset token');
-      }
-      
-      // In a real app, this would update the user's password in the database
-      localStorage.removeItem(RESET_TOKEN_KEY);
+      await authAPI.resetPassword(token, newPassword);
       toast.success('Password reset successfully');
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error('Reset password error:', error);
       throw error;
     }
   };
 
   // Logout function
   const logout = (): void => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    // Call logout API if refresh token exists
+    if (refreshToken) {
+      authAPI.logout(refreshToken).catch(console.error);
+    }
+    
+    // Disconnect socket
+    socketService.disconnect();
+    
+    // Clear local storage
     setUser(null);
+    clearTokens();
     localStorage.removeItem(USER_STORAGE_KEY);
+    
     toast.success('Logged out successfully');
   };
 
   // Update user profile
   const updateProfile = async (userId: string, updates: Partial<User>): Promise<void> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update user in mock data
-      const userIndex = users.findIndex(u => u.id === userId);
-      if (userIndex === -1) {
-        throw new Error('User not found');
-      }
-      
-      const updatedUser = { ...users[userIndex], ...updates };
-      users[userIndex] = updatedUser;
+      const response = await authAPI.getMe(); // Get fresh user data
+      const updatedUser = response.data.data.user;
       
       // Update current user if it's the same user
       if (user?.id === userId) {
@@ -164,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Profile updated successfully');
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error('Update profile error:', error);
       throw error;
     }
   };
