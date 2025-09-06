@@ -1,55 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MessageCircle, Users, Calendar, Building2, MapPin, UserCircle, FileText, DollarSign, Send } from 'lucide-react';
+import { MessageCircle, Users, Calendar, Building2, MapPin, UserCircle, FileText, DollarSign } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
-import { findUserById } from '../../data/users';
-import { createCollaborationRequest, getRequestsFromInvestor } from '../../data/collaborationRequests';
+import { userAPI } from '../../config/api';
 import { Entrepreneur } from '../../types';
 
 export const EntrepreneurProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  
+  const [entrepreneur, setEntrepreneur] = useState<Entrepreneur | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Fetch entrepreneur data
-  const entrepreneur = findUserById(id || '') as Entrepreneur | null;
-  
-  if (!entrepreneur || entrepreneur.role !== 'entrepreneur') {
+  useEffect(() => {
+    const fetchEntrepreneur = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Check if user is authenticated
+        if (!currentUser) {
+          console.log('No current user found, checking localStorage...');
+          const storedUser = localStorage.getItem('business_nexus_user');
+          if (storedUser) {
+            console.log('Found user in localStorage:', JSON.parse(storedUser));
+            setError('Please refresh the page to load your profile');
+          } else {
+            setError('Please log in to view profiles');
+          }
+          return;
+        }
+
+        console.log('Current user:', currentUser);
+        console.log('User ID:', currentUser._id);
+
+        // If no ID provided, use current user's profile
+        const userId = id || currentUser._id;
+
+        if (!userId) {
+          setError('No user ID provided');
+          return;
+        }
+
+        console.log('Fetching user with ID:', userId);
+
+        const response = await userAPI.getUserById(userId);
+        const userData = response.data.data.user;
+
+        if (userData.role !== 'entrepreneur') {
+          setError('User is not an entrepreneur');
+          return;
+        }
+
+        setEntrepreneur(userData);
+      } catch (err) {
+        console.error('Error fetching entrepreneur:', err);
+        setError('Failed to load entrepreneur profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEntrepreneur();
+  }, [id, currentUser]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !entrepreneur) {
+    // If user is not authenticated, redirect to login
+    if (error === 'Please log in to view profiles') {
+      return (
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
+          <p className="text-gray-600 mt-2">Please log in to view profiles.</p>
+          <Link to="/login">
+            <Button className="mt-4">Log In</Button>
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Entrepreneur not found</h2>
-        <p className="text-gray-600 mt-2">The entrepreneur profile you're looking for doesn't exist or has been removed.</p>
-        <Link to="/dashboard/investor">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {error || 'Entrepreneur not found'}
+        </h2>
+        <p className="text-gray-600 mt-2">
+          {error ? 'There was an error loading the profile.' : 'The entrepreneur profile you\'re looking for doesn\'t exist or has been removed.'}
+        </p>
+        <Link to={currentUser?.role === 'investor' ? '/dashboard/investor' : '/dashboard/entrepreneur'}>
           <Button variant="outline" className="mt-4">Back to Dashboard</Button>
         </Link>
       </div>
     );
   }
   
-  const isCurrentUser = currentUser?.id === entrepreneur.id;
+  const isCurrentUser = currentUser?._id === entrepreneur._id;
   const isInvestor = currentUser?.role === 'investor';
-  
-  // Check if the current investor has already sent a request to this entrepreneur
-  const hasRequestedCollaboration = isInvestor && id 
-    ? getRequestsFromInvestor(currentUser.id).some(req => req.entrepreneurId === id)
-    : false;
-  
-  const handleSendRequest = () => {
-    if (isInvestor && currentUser && id) {
-      createCollaborationRequest(
-        currentUser.id,
-        id,
-        `I'm interested in learning more about ${entrepreneur.startupName} and would like to explore potential investment opportunities.`
-      );
-      
-      // In a real app, we would refresh the data or update state
-      // For this demo, we'll force a page reload
-      window.location.reload();
-    }
-  };
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -102,25 +160,18 @@ export const EntrepreneurProfile: React.FC = () => {
                   </Button>
                 </Link>
                 
-                {isInvestor && (
-                  <Button
-                    leftIcon={<Send size={18} />}
-                    disabled={hasRequestedCollaboration}
-                    onClick={handleSendRequest}
-                  >
-                    {hasRequestedCollaboration ? 'Request Sent' : 'Request Collaboration'}
-                  </Button>
-                )}
               </>
             )}
             
             {isCurrentUser && (
-              <Button
-                variant="outline"
-                leftIcon={<UserCircle size={18} />}
-              >
-                Edit Profile
-              </Button>
+              <Link to="/profile/edit">
+                <Button
+                  variant="outline"
+                  leftIcon={<UserCircle size={18} />}
+                >
+                  Edit Profile
+                </Button>
+              </Link>
             )}
           </div>
         </CardBody>
@@ -323,29 +374,6 @@ export const EntrepreneurProfile: React.FC = () => {
                 </div>
               </div>
               
-              {!isCurrentUser && isInvestor && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500">
-                    Request access to detailed documents and financials by sending a collaboration request.
-                  </p>
-                  
-                  {!hasRequestedCollaboration ? (
-                    <Button
-                      className="mt-3 w-full"
-                      onClick={handleSendRequest}
-                    >
-                      Request Collaboration
-                    </Button>
-                  ) : (
-                    <Button
-                      className="mt-3 w-full"
-                      disabled
-                    >
-                      Request Sent
-                    </Button>
-                  )}
-                </div>
-              )}
             </CardBody>
           </Card>
         </div>

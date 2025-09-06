@@ -16,6 +16,7 @@ import { InvestorDashboard } from './pages/dashboard/InvestorDashboard';
 // Profile Pages
 import { EntrepreneurProfile } from './pages/profile/EntrepreneurProfile';
 import { InvestorProfile } from './pages/profile/InvestorProfile';
+import { EditProfile } from './pages/profile/EditProfile';
 
 // Feature Pages
 import { InvestorsPage } from './pages/investors/InvestorsPage';
@@ -49,6 +50,7 @@ function App() {
           <Route path="/profile" element={<DashboardLayout />}>
             <Route path="entrepreneur/:id" element={<EntrepreneurProfile />} />
             <Route path="investor/:id" element={<InvestorProfile />} />
+            <Route path="edit" element={<EditProfile />} />
           </Route>
           
           {/* Feature Routes */}

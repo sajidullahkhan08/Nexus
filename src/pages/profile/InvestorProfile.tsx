@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MessageCircle, Building2, MapPin, UserCircle, BarChart3, Briefcase } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
@@ -6,29 +6,95 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
-import { findUserById } from '../../data/users';
+import { userAPI } from '../../config/api';
 import { Investor } from '../../types';
 
 export const InvestorProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  
+  const [investor, setInvestor] = useState<Investor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Fetch investor data
-  const investor = findUserById(id || '') as Investor | null;
-  
-  if (!investor || investor.role !== 'investor') {
+  useEffect(() => {
+    const fetchInvestor = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Check if user is authenticated
+        if (!currentUser) {
+          setError('Please log in to view profiles');
+          return;
+        }
+
+        // If no ID provided, use current user's profile
+        const userId = id || currentUser._id;
+
+        if (!userId) {
+          setError('No user ID provided');
+          return;
+        }
+
+        const response = await userAPI.getUserById(userId);
+        const userData = response.data.data.user;
+
+        if (userData.role !== 'investor') {
+          setError('User is not an investor');
+          return;
+        }
+
+        setInvestor(userData);
+      } catch (err) {
+        console.error('Error fetching investor:', err);
+        setError('Failed to load investor profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvestor();
+  }, [id, currentUser]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !investor) {
+    // If user is not authenticated, redirect to login
+    if (error === 'Please log in to view profiles') {
+      return (
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-gray-900">Authentication Required</h2>
+          <p className="text-gray-600 mt-2">Please log in to view profiles.</p>
+          <Link to="/login">
+            <Button className="mt-4">Log In</Button>
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Investor not found</h2>
-        <p className="text-gray-600 mt-2">The investor profile you're looking for doesn't exist or has been removed.</p>
-        <Link to="/dashboard/entrepreneur">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {error || 'Investor not found'}
+        </h2>
+        <p className="text-gray-600 mt-2">
+          {error ? 'There was an error loading the profile.' : 'The investor profile you\'re looking for doesn\'t exist or has been removed.'}
+        </p>
+        <Link to={currentUser?.role === 'entrepreneur' ? '/dashboard/entrepreneur' : '/dashboard/investor'}>
           <Button variant="outline" className="mt-4">Back to Dashboard</Button>
         </Link>
       </div>
     );
   }
   
-  const isCurrentUser = currentUser?.id === investor.id;
+  const isCurrentUser = currentUser?._id === investor._id;
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -75,12 +141,14 @@ export const InvestorProfile: React.FC = () => {
             )}
             
             {isCurrentUser && (
-              <Button
-                variant="outline"
-                leftIcon={<UserCircle size={18} />}
-              >
-                Edit Profile
-              </Button>
+              <Link to="/profile/edit">
+                <Button
+                  variant="outline"
+                  leftIcon={<UserCircle size={18} />}
+                >
+                  Edit Profile
+                </Button>
+              </Link>
             )}
           </div>
         </CardBody>

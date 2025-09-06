@@ -155,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = response.data.data.user;
       
       // Update current user if it's the same user
-      if (user?.id === userId) {
+      if (user?._id === userId) {
         setUser(updatedUser);
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
       }

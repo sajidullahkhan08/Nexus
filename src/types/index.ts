@@ -1,14 +1,30 @@
 export type UserRole = 'entrepreneur' | 'investor';
 
 export interface User {
-  id: string;
+  _id: string;
+  id?: string; // For backward compatibility
   name: string;
   email: string;
   role: UserRole;
   avatarUrl: string;
   bio: string;
+  location?: string;
   isOnline?: boolean;
   createdAt: string;
+  // Entrepreneur fields
+  startupName?: string;
+  pitchSummary?: string;
+  fundingNeeded?: string;
+  industry?: string;
+  foundedYear?: number;
+  teamSize?: number;
+  // Investor fields
+  investmentInterests?: string[];
+  investmentStage?: string[];
+  portfolioCompanies?: string[];
+  totalInvestments?: number;
+  minimumInvestment?: string;
+  maximumInvestment?: string;
 }
 
 export interface Entrepreneur extends User {
