@@ -204,15 +204,19 @@ process.on('unhandledRejection', (error) => {
   process.exit(1);
 });
 
-server.listen(PORT, () => {
+// Railway-specific: Listen on all interfaces in production
+const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+server.listen(PORT, host, () => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const host = isProduction ? '0.0.0.0' : 'localhost';
+  const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID;
 
   console.log(`
 🚀 Nexus Platform Backend Server Started
 📍 Port: ${PORT}
 🌍 Environment: ${process.env.NODE_ENV || 'development'}
 🏠 Host: ${host}
+${isRailway ? '🚂 Platform: Railway' : '🏠 Platform: Local/Other'}
 📚 API Docs: http://${host}:${PORT}/api/docs
 💻 Health Check: http://${host}:${PORT}/health
   `);
@@ -220,11 +224,21 @@ server.listen(PORT, () => {
   // Log important environment variables (without sensitive data)
   console.log(`
 📊 Configuration:
-   - Database: ${process.env.MONGODB_URI ? 'Connected' : 'Not configured'}
-   - JWT: ${process.env.JWT_SECRET ? 'Configured' : 'Not configured'}
-   - Email: ${process.env.EMAIL_USER ? 'Configured' : 'Not configured'}
-   - Frontend: ${process.env.FRONTEND_URL || 'Not configured'}
+   - Database: ${process.env.MONGODB_URI ? '✅ Connected' : '❌ Not configured'}
+   - JWT: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Not configured'}
+   - Email: ${process.env.EMAIL_USER ? '✅ Configured' : '❌ Not configured'}
+   - Frontend: ${process.env.FRONTEND_URL || '❌ Not configured'}
+   - Railway: ${isRailway ? '✅ Detected' : '❌ Not detected'}
   `);
+
+  if (isRailway) {
+    console.log(`
+🔧 Railway Environment Variables:
+   - RAILWAY_PROJECT_ID: ${process.env.RAILWAY_PROJECT_ID ? '✅ Set' : '❌ Not set'}
+   - RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT || 'Not set'}
+   - RAILWAY_STATIC_URL: ${process.env.RAILWAY_STATIC_URL || 'Not set'}
+    `);
+  }
 });
 
 // Graceful shutdown

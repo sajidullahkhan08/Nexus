@@ -65,16 +65,17 @@ npm run dev
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Option 1: Frontend (Vercel) + Backend (Railway) - Recommended
 
+#### Frontend Deployment (Vercel)
 1. **Connect Repository**
    - Push code to GitHub
    - Connect repository to Vercel
 
 2. **Environment Variables**
    ```bash
-   VITE_API_URL=https://your-render-app.onrender.com/api
-   VITE_SOCKET_URL=https://your-render-app.onrender.com
+   VITE_API_URL=https://your-railway-app.railway.app/api
+   VITE_SOCKET_URL=https://your-railway-app.railway.app
    ```
 
 3. **Deploy**
@@ -82,8 +83,31 @@ npm run dev
    npm run deploy:vercel
    ```
 
-### Backend (Render)
+#### Backend Deployment (Railway)
+1. **Connect Repository**
+   - Push backend code to GitHub
+   - Connect repository to Railway
 
+2. **Environment Variables** (in Railway Dashboard)
+   ```bash
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your-jwt-secret
+   JWT_REFRESH_SECRET=your-refresh-secret
+   FRONTEND_URL=https://your-vercel-app.vercel.app
+   NODE_ENV=production
+   ```
+
+3. **Railway Auto-Configuration**
+   - Railway automatically detects Node.js
+   - Uses `railway.json` configuration
+   - Sets up health checks and scaling
+
+### Option 2: Full Stack (Render)
+
+#### Frontend (Vercel)
+Same as Option 1 above.
+
+#### Backend (Render)
 1. **Connect Repository**
    - Push backend code to GitHub
    - Connect repository to Render

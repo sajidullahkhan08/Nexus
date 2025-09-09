@@ -1,290 +1,140 @@
 # Nexus Platform Backend
 
-A comprehensive backend API for the Nexus Platform - connecting investors and entrepreneurs through secure collaboration tools.
+Node.js/Express backend for the Business Nexus platform - connecting entrepreneurs and investors.
 
-## Features
+## 🚀 Railway Deployment
 
-- **Authentication & Authorization**: JWT-based auth with refresh tokens, role-based access control
-- **User Management**: Separate profiles for entrepreneurs and investors
-- **Real-time Communication**: WebSocket support for chat and video calls
-- **Meeting Scheduling**: Calendar integration with conflict detection
-- **Document Management**: Secure file upload and sharing
-- **Payment Integration**: Mock payment system with transaction tracking
-- **Security**: Rate limiting, input sanitization, CORS protection
-
-## Tech Stack
-
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Real-time**: Socket.IO
-- **Authentication**: JWT
-- **File Upload**: Multer
-- **Email**: Nodemailer
-- **Security**: Helmet, express-rate-limit
-- **Validation**: express-validator
-
-## Quick Start
+This backend is configured for seamless deployment on Railway.
 
 ### Prerequisites
+- Railway account (https://railway.app)
+- MongoDB Atlas account
+- GitHub repository
 
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
-- npm or yarn
+### Quick Deploy
 
-### Installation
-
-1. **Clone and navigate to backend directory**
+1. **Connect Repository**
    ```bash
-   cd backend
+   # Push backend to GitHub
+   git add .
+   git commit -m "Railway deployment"
+   git push origin main
    ```
 
-2. **Install dependencies**
+2. **Deploy on Railway**
+   - Go to Railway Dashboard
+   - Click "New Project"
+   - Connect your GitHub repository
+   - Railway will auto-detect Node.js and use `railway.json`
+
+3. **Configure Environment Variables**
    ```bash
-   npm install
+   # In Railway Dashboard → Variables
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your-secure-jwt-secret
+   JWT_REFRESH_SECRET=your-secure-refresh-secret
+   FRONTEND_URL=https://your-frontend.vercel.app
+   NODE_ENV=production
    ```
 
-3. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Update `.env` with your configuration:
-   ```env
-   PORT=5000
-   NODE_ENV=development
-   MONGODB_URI=mongodb://localhost:27017/nexus-platform
-   JWT_SECRET=your-super-secret-jwt-key
-   JWT_REFRESH_SECRET=your-refresh-secret
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   FRONTEND_URL=http://localhost:5173
-   ```
+### Environment Variables
 
-4. **Create upload directories**
-   ```bash
-   mkdir -p uploads/avatars uploads/documents
-   ```
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB Atlas connection string | ✅ |
+| `JWT_SECRET` | JWT signing secret | ✅ |
+| `JWT_REFRESH_SECRET` | JWT refresh token secret | ✅ |
+| `FRONTEND_URL` | Frontend application URL | ✅ |
+| `NODE_ENV` | Environment (production) | ✅ |
+| `EMAIL_HOST` | SMTP host (optional) | ❌ |
+| `EMAIL_USER` | SMTP username (optional) | ❌ |
+| `EMAIL_PASS` | SMTP password (optional) | ❌ |
 
-5. **Start the server**
-   ```bash
-   # Development
-   npm run dev
-   
-   # Production
-   npm start
-   ```
+### Railway Configuration
 
-## API Documentation
+The `railway.json` file contains:
+- **Build settings**: Uses Nixpacks builder
+- **Start command**: `npm start`
+- **Health check**: `/health` endpoint
+- **Environment variables**: Production configuration
 
-### Base URL
-```
-http://localhost:5000/api
-```
+### Database Setup
 
-### Authentication Endpoints
+1. **MongoDB Atlas**
+   - Create cluster
+   - Create database user
+   - Whitelist Railway IP (0.0.0.0/0 for Railway)
+   - Get connection string
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | User login |
-| POST | `/auth/refresh-token` | Refresh access token |
-| POST | `/auth/logout` | User logout |
-| POST | `/auth/forgot-password` | Request password reset |
-| POST | `/auth/reset-password` | Reset password |
-| GET | `/auth/me` | Get current user |
+2. **Railway Database** (Alternative)
+   - Railway provides PostgreSQL by default
+   - Can add MongoDB plugin if needed
 
-### User Endpoints
+### File Uploads
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/users` | Get all users (with filters) |
-| GET | `/users/entrepreneurs` | Get entrepreneurs |
-| GET | `/users/investors` | Get investors |
-| GET | `/users/:id` | Get user by ID |
-| PUT | `/users/profile` | Update user profile |
-| PUT | `/users/avatar` | Update user avatar |
-| DELETE | `/users/account` | Delete user account |
+- **Local storage**: Files stored in `/opt/render/project/src/uploads/`
+- **Cloud storage**: Configure Cloudinary for production
+- **Railway volume**: Can be added for persistent file storage
 
-### Meeting Endpoints
+### Monitoring
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/meetings` | Create meeting |
-| GET | `/meetings` | Get user meetings |
-| GET | `/meetings/:id` | Get meeting by ID |
-| PUT | `/meetings/:id` | Update meeting |
-| PUT | `/meetings/:id/respond` | Respond to invitation |
-| POST | `/meetings/:id/join` | Join meeting |
-| POST | `/meetings/:id/leave` | Leave meeting |
-| DELETE | `/meetings/:id` | Delete meeting |
+Railway provides:
+- **Logs**: Real-time application logs
+- **Metrics**: CPU, memory, and network usage
+- **Health checks**: Automatic health monitoring
+- **Deployments**: Deployment history and rollback
 
-## WebSocket Events
+### Troubleshooting
 
-### Chat Events
-- `send_message` - Send a message
-- `new_message` - Receive a message
-- `mark_read` - Mark message as read
-- `typing_start` - User started typing
-- `typing_stop` - User stopped typing
-
-### Video Call Events
-- `join_call` - Join video call
-- `leave_call` - Leave video call
-- `offer` - WebRTC offer
-- `answer` - WebRTC answer
-- `ice_candidate` - ICE candidate
-- `toggle_audio` - Toggle audio
-- `toggle_video` - Toggle video
-
-### Meeting Events
-- `join_meeting` - Join meeting room
-- `leave_meeting` - Leave meeting room
-- `participant_joined` - New participant joined
-- `participant_left` - Participant left
-- `start_screen_share` - Start screen sharing
-- `stop_screen_share` - Stop screen sharing
-- `meeting_message` - Meeting chat message
-
-## Database Models
-
-### User Model
-```javascript
-{
-  name: String,
-  email: String,
-  password: String,
-  role: 'entrepreneur' | 'investor',
-  avatarUrl: String,
-  bio: String,
-  isOnline: Boolean,
-  // Role-specific fields...
-}
-```
-
-### Meeting Model
-```javascript
-{
-  title: String,
-  description: String,
-  organizer: ObjectId,
-  participants: [{ user: ObjectId, status: String }],
-  startTime: Date,
-  endTime: Date,
-  status: String,
-  roomId: String
-}
-```
-
-## Security Features
-
-- **Rate Limiting**: Prevents abuse with configurable limits
-- **Input Sanitization**: Removes XSS attempts
-- **CORS Protection**: Configured for frontend domain
-- **Helmet**: Security headers
-- **JWT**: Secure token-based authentication
-- **Password Hashing**: bcrypt with configurable rounds
-
-## Deployment
-
-### Environment Variables for Production
-```env
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/nexus-platform
-JWT_SECRET=your-production-jwt-secret
-FRONTEND_URL=https://your-frontend-domain.com
-```
-
-### Deployment Platforms
-
-**Render**
-1. Connect your GitHub repository
-2. Set environment variables
-3. Deploy automatically
-
-**Railway**
-1. Connect repository
-2. Configure environment
-3. Deploy with one click
-
-**Heroku**
-1. Create Heroku app
-2. Set config vars
-3. Deploy via Git
-
-## Development
-
-### Project Structure
-```
-backend/
-├── src/
-│   ├── config/          # Database and app configuration
-│   ├── controllers/     # Route handlers
-│   ├── middleware/      # Custom middleware
-│   ├── models/          # Database models
-│   ├── routes/          # API routes
-│   ├── services/        # Business logic services
-│   ├── utils/           # Utility functions
-│   └── server.js        # Main server file
-├── uploads/             # File uploads
-├── .env.example         # Environment template
-└── package.json
-```
-
-### Adding New Features
-
-1. **Create Model** (if needed)
-   ```javascript
-   // src/models/NewModel.js
-   const mongoose = require('mongoose');
-   const schema = new mongoose.Schema({...});
-   module.exports = mongoose.model('NewModel', schema);
-   ```
-
-2. **Create Controller**
-   ```javascript
-   // src/controllers/newController.js
-   const NewModel = require('../models/NewModel');
-   const createNew = async (req, res) => {...};
-   module.exports = { createNew };
-   ```
-
-3. **Create Routes**
-   ```javascript
-   // src/routes/new.js
-   const express = require('express');
-   const { createNew } = require('../controllers/newController');
-   const router = express.Router();
-   router.post('/', createNew);
-   module.exports = router;
-   ```
-
-4. **Register Routes**
-   ```javascript
-   // src/server.js
-   const newRoutes = require('./routes/new');
-   app.use('/api/new', newRoutes);
-   ```
-
-## Testing
-
+#### Build Issues
 ```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
+# Check Railway build logs
+# Ensure package.json has correct scripts
+# Verify Node.js version compatibility
 ```
 
-## Contributing
+#### Database Connection
+```bash
+# Verify MongoDB Atlas connection string
+# Check IP whitelist (0.0.0.0/0 for Railway)
+# Ensure database user has correct permissions
+```
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+#### Environment Variables
+```bash
+# Use Railway dashboard to set variables
+# Variables are encrypted and secure
+# Changes require redeployment
+```
 
-## License
+### API Endpoints
 
-This project is licensed under the MIT License.
+Once deployed, your API will be available at:
+```
+https://your-app.railway.app/api
+```
+
+Key endpoints:
+- `GET /health` - Health check
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/docs` - API documentation
+
+### Security Features
+
+- **CORS**: Configured for frontend domain
+- **Helmet**: Security headers
+- **Rate limiting**: API rate protection
+- **JWT**: Secure authentication
+- **Input validation**: Request sanitization
+
+### Performance
+
+- **Automatic scaling**: Railway scales based on traffic
+- **Global CDN**: Fast content delivery
+- **Persistent connections**: WebSocket support
+- **Health monitoring**: Automatic restarts on failure
+
+---
+
+For more information, visit [Railway Documentation](https://docs.railway.app/).

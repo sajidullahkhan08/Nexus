@@ -18,11 +18,6 @@
   "env": {
     "VITE_API_URL": "@vite_api_url"
   },
-  "functions": {
-    "src/pages/**/*.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
