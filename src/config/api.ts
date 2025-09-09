@@ -92,6 +92,15 @@ export const meetingAPI = {
   deleteMeeting: (id: string) => api.delete(`/meetings/${id}`),
 };
 
+// Message API
+export const messageAPI = {
+  getConversation: (userId: string) => api.get(`/messages/conversation/${userId}`),
+  getConversationList: () => api.get('/messages/conversation-list'),
+  getUnreadCount: () => api.get('/messages/unread-count'),
+  markMessageRead: (messageId: string) => api.put(`/messages/mark-read/${messageId}`),
+  markAllMessagesRead: (userId: string) => api.put(`/messages/mark-read/${userId}`),
+};
+
 // Utility functions
 export const getToken = () => localStorage.getItem('accessToken');
 export const setToken = (token: string) => localStorage.setItem('accessToken', token);

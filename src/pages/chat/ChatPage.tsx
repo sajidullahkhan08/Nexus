@@ -45,10 +45,14 @@ export const ChatPage: React.FC = () => {
       if (!currentUser || !userId) return;
 
       try {
-        // Map short userId to full ObjectId for API call
+        // Find chat partner using the userId from URL (should be short ID like 'i1')
         const chatPartner = findUserById(userId);
-        if (!chatPartner) return;
+        if (!chatPartner || !chatPartner._id) {
+          console.error('Chat partner not found or missing _id for userId:', userId);
+          return;
+        }
 
+        // Use the ObjectId for API call
         const data = await messageAPI.getConversation(chatPartner._id);
         setMessages(data);
       } catch (error) {

@@ -19,12 +19,16 @@ export const InvestorCard: React.FC<InvestorCardProps> = ({
   const navigate = useNavigate();
   
   const handleViewProfile = () => {
-    navigate(`/profile/investor/${investor._id || investor.id}`);
+    if (!investor._id) {
+      console.error('Investor missing _id for profile navigation');
+      return;
+    }
+    navigate(`/profile/investor/${investor._id}`);
   };
 
   const handleMessage = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    navigate(`/chat/${investor._id || investor.id}`);
+    navigate(`/chat/${investor.id}`);
   };
   
   return (

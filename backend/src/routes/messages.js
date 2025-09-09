@@ -100,8 +100,8 @@ router.get('/conversation-list', auth, async (req, res) => {
       {
         $match: {
           $or: [
-            { sender: mongoose.Types.ObjectId(currentUserId) },
-            { receiver: mongoose.Types.ObjectId(currentUserId) }
+            { sender: new mongoose.Types.ObjectId(currentUserId) },
+            { receiver: new mongoose.Types.ObjectId(currentUserId) }
           ]
         }
       },
@@ -112,7 +112,7 @@ router.get('/conversation-list', auth, async (req, res) => {
         $group: {
           _id: {
             $cond: {
-              if: { $eq: ['$sender', mongoose.Types.ObjectId(currentUserId)] },
+              if: { $eq: ['$sender', new mongoose.Types.ObjectId(currentUserId)] },
               then: '$receiver',
               else: '$sender'
             }
@@ -123,7 +123,7 @@ router.get('/conversation-list', auth, async (req, res) => {
               $cond: [
                 {
                   $and: [
-                    { $eq: ['$receiver', mongoose.Types.ObjectId(currentUserId)] },
+                    { $eq: ['$receiver', new mongoose.Types.ObjectId(currentUserId)] },
                     { $eq: ['$isRead', false] }
                   ]
                 },

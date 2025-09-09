@@ -1,35 +1,64 @@
-import React, { useState } from 'react';
-import { Search, Filter, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, MapPin, Loader2 } from 'lucide-react';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
+
 import { EntrepreneurCard } from '../../components/entrepreneur/EntrepreneurCard';
-import { entrepreneurs } from '../../data/users';
+import { Entrepreneur } from '../../types';
+import { userAPI } from '../../config/api';
 
 export const EntrepreneursPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedFundingRange, setSelectedFundingRange] = useState<string[]>([]);
-  
-  // Get unique industries and funding ranges
-  const allIndustries = Array.from(new Set(entrepreneurs.map(e => e.industry)));
+  const [entrepreneurs, setEntrepreneurs] = useState<Entrepreneur[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const fundingRanges = ['< $500K', '$500K - $1M', '$1M - $5M', '> $5M'];
-  
+
+  // Fetch entrepreneurs on component mount
+  useEffect(() => {
+    const fetchEntrepreneurs = async () => {
+      try {
+        setLoading(true);
+        const response = await userAPI.getEntrepreneurs();
+        setEntrepreneurs(response.data || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching entrepreneurs:', err);
+        setError('Failed to load entrepreneurs. Please try again.');
+        // Fallback to empty array
+        setEntrepreneurs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEntrepreneurs();
+  }, []);
+
+  // Get unique industries from fetched entrepreneurs
+  const allIndustries = Array.isArray(entrepreneurs) ? Array.from(new Set(entrepreneurs.map(e => e?.industry || ''))).filter(Boolean) : [];
+
   // Filter entrepreneurs based on search and filters
-  const filteredEntrepreneurs = entrepreneurs.filter(entrepreneur => {
-    const matchesSearch = searchQuery === '' || 
-      entrepreneur.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entrepreneur.startupName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entrepreneur.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entrepreneur.pitchSummary.toLowerCase().includes(searchQuery.toLowerCase());
-    
+  const filteredEntrepreneurs = Array.isArray(entrepreneurs) ? entrepreneurs.filter(entrepreneur => {
+    if (!entrepreneur) return false;
+
+    const matchesSearch = searchQuery === '' ||
+      (entrepreneur.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (entrepreneur.startupName?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (entrepreneur.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (entrepreneur.pitchSummary?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+
     const matchesIndustry = selectedIndustries.length === 0 ||
       selectedIndustries.includes(entrepreneur.industry);
-    
+
     // Simple funding range filter based on the amount string
-    const matchesFunding = selectedFundingRange.length === 0 || 
+    const matchesFunding = selectedFundingRange.length === 0 ||
       selectedFundingRange.some(range => {
-        const amount = parseInt(entrepreneur.fundingNeeded.replace(/[^0-9]/g, ''));
+        const fundingNeeded = entrepreneur.fundingNeeded || '';
+        const amount = parseInt(fundingNeeded.replace(/[^0-9]/g, ''));
         switch (range) {
           case '< $500K': return amount < 500;
           case '$500K - $1M': return amount >= 500 && amount <= 1000;
@@ -38,9 +67,9 @@ export const EntrepreneursPage: React.FC = () => {
           default: return true;
         }
       });
-    
+
     return matchesSearch && matchesIndustry && matchesFunding;
-  });
+  }) : [];
   
   const toggleIndustry = (industry: string) => {
     setSelectedIndustries(prev => 
@@ -142,7 +171,7 @@ export const EntrepreneursPage: React.FC = () => {
               startAdornment={<Search size={18} />}
               fullWidth
             />
-            
+
             <div className="flex items-center gap-2">
               <Filter size={18} className="text-gray-500" />
               <span className="text-sm text-gray-600">
@@ -150,15 +179,36 @@ export const EntrepreneursPage: React.FC = () => {
               </span>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredEntrepreneurs.map(entrepreneur => (
-              <EntrepreneurCard
-                key={entrepreneur.id}
-                entrepreneur={entrepreneur}
-              />
-            ))}
-          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="animate-spin h-8 w-8 text-primary" />
+              <span className="ml-2 text-gray-600">Loading entrepreneurs...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : filteredEntrepreneurs.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No entrepreneurs found matching your criteria.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredEntrepreneurs.map(entrepreneur => (
+                <EntrepreneurCard
+                  key={entrepreneur.id}
+                  entrepreneur={entrepreneur}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -18,16 +18,30 @@ export const InvestorsPage: React.FC = () => {
     const fetchInvestors = async () => {
       try {
         const response = await userAPI.getInvestors();
+        console.log('Investors API response:', response.data);
+
         // API returns {success: true, data: {investors: [...], pagination: {...}}}
-        if (response.data && response.data.data && response.data.data.investors && Array.isArray(response.data.data.investors)) {
+        if (response.data && response.data.success && response.data.data && response.data.data.investors && Array.isArray(response.data.data.investors)) {
+          console.log('Setting investors:', response.data.data.investors);
           setInvestors(response.data.data.investors);
         } else {
           console.error('Investors API returned data in unexpected format:', response.data);
-          setInvestors([]);
+          // Fallback to static data for development
+          console.log('Using fallback static data');
+          const { investors: staticInvestors } = await import('../../data/users');
+          setInvestors(staticInvestors);
         }
       } catch (error) {
         console.error('Error fetching investors:', error);
-        setInvestors([]);
+        // Fallback to static data for development
+        console.log('Using fallback static data due to error');
+        try {
+          const { investors: staticInvestors } = await import('../../data/users');
+          setInvestors(staticInvestors);
+        } catch (fallbackError) {
+          console.error('Fallback data error:', fallbackError);
+          setInvestors([]);
+        }
       } finally {
         setLoading(false);
       }
