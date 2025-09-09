@@ -19,7 +19,7 @@ export const InvestorDashboard: React.FC = () => {
   if (!user) return null;
   
   // Get collaboration requests sent by this investor
-  const sentRequests = getRequestsFromInvestor(user.id);
+  const sentRequests = getRequestsFromInvestor(user._id);
   const requestedEntrepreneurIds = sentRequests.map(req => req.entrepreneurId);
   
   // Filter entrepreneurs based on search and industry filters

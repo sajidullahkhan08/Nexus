@@ -10,7 +10,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import toast from 'react-hot-toast';
 
 export const EditProfile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -98,7 +98,8 @@ export const EditProfile: React.FC = () => {
     }
   };
 
-  const handleAvatarUpload = async () => {
+  const handleAvatarUpload = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!fileInputRef.current?.files?.[0]) return;
 
     setAvatarLoading(true);
@@ -106,11 +107,30 @@ export const EditProfile: React.FC = () => {
       const formData = new FormData();
       formData.append('avatar', fileInputRef.current.files[0]);
 
-      await userAPI.updateAvatar(formData);
+      console.log('Uploading avatar file:', fileInputRef.current.files[0]);
+
+      const response = await userAPI.updateAvatar(formData);
+      console.log('Avatar upload response:', response);
+
+      // Update the user state in AuthContext with the new avatar URL
+      if (response.data && response.data.data && response.data.data.user) {
+        const updatedUser = response.data.data.user;
+        console.log('Updated user from response:', updatedUser);
+        console.log('New avatar URL:', updatedUser.avatarUrl);
+
+        // Force refresh user data to ensure all components get updated
+        if (refreshUser) {
+          await refreshUser();
+          console.log('User data refreshed from server');
+        }
+      }
+
       toast.success('Avatar updated successfully!');
       setAvatarPreview(null);
-      // Refresh user data
-      window.location.reload();
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       console.error('Avatar upload error:', error);
       toast.error('Failed to update avatar');
@@ -216,7 +236,7 @@ export const EditProfile: React.FC = () => {
           <CardBody className="space-y-4">
             <div className="flex items-center space-x-6">
               <Avatar
-                src={user.avatarUrl}
+                src={avatarPreview || user.avatarUrl}
                 alt={user.name}
                 size="xl"
                 className="border-4 border-white shadow-lg"

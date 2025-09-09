@@ -24,14 +24,14 @@ export const Avatar: React.FC<AvatarProps> = ({
     lg: 'h-12 w-12',
     xl: 'h-16 w-16',
   };
-  
+
   const statusColors = {
     online: 'bg-success-500',
     offline: 'bg-gray-400',
     away: 'bg-warning-500',
     busy: 'bg-error-500',
   };
-  
+
   const statusSizes = {
     xs: 'h-1.5 w-1.5',
     sm: 'h-2 w-2',
@@ -39,11 +39,28 @@ export const Avatar: React.FC<AvatarProps> = ({
     lg: 'h-3 w-3',
     xl: 'h-4 w-4',
   };
-  
+
+  // Handle relative URLs by prepending the backend URL and add cache-busting parameter
+  const getImageUrl = (url: string) => {
+    let finalUrl = url;
+
+    if (url.startsWith('http')) {
+      finalUrl = url; // Already a full URL
+    } else if (url.startsWith('/')) {
+      // Relative URL, prepend backend URL
+      finalUrl = `http://localhost:5000${url}`;
+    }
+
+    // Add cache-busting parameter to prevent browser caching
+    const separator = finalUrl.includes('?') ? '&' : '?';
+    const timestamp = Date.now();
+    return `${finalUrl}${separator}t=${timestamp}`;
+  };
+
   return (
     <div className={`relative inline-block ${className}`}>
       <img
-        src={src}
+        src={getImageUrl(src)}
         alt={alt}
         className={`rounded-full object-cover ${sizeClasses[size]}`}
         onError={(e) => {

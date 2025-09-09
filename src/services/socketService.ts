@@ -1,5 +1,4 @@
 import { io, Socket } from 'socket.io-client';
-import { getToken } from '../config/api';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -8,9 +7,10 @@ class SocketService {
 
   connect(): Promise<Socket> {
     return new Promise((resolve, reject) => {
-      const token = getToken();
-      
+      const token = localStorage.getItem('accessToken');
+
       if (!token) {
+        console.log('SocketService: No token available, skipping connection');
         reject(new Error('No authentication token available'));
         return;
       }

@@ -7,21 +7,44 @@ import { Badge } from '../../components/ui/Badge';
 import { CollaborationRequestCard } from '../../components/collaboration/CollaborationRequestCard';
 import { InvestorCard } from '../../components/investor/InvestorCard';
 import { useAuth } from '../../context/AuthContext';
-import { CollaborationRequest } from '../../types';
+import { CollaborationRequest, Investor } from '../../types';
 import { getRequestsForEntrepreneur } from '../../data/collaborationRequests';
-import { investors } from '../../data/users';
+import { userAPI } from '../../config/api';
 
 export const EntrepreneurDashboard: React.FC = () => {
   const { user } = useAuth();
   const [collaborationRequests, setCollaborationRequests] = useState<CollaborationRequest[]>([]);
-  const [recommendedInvestors, setRecommendedInvestors] = useState(investors.slice(0, 3));
-  
+  const [recommendedInvestors, setRecommendedInvestors] = useState<Investor[]>([]);
+  const [loadingInvestors, setLoadingInvestors] = useState(true);
+
   useEffect(() => {
-    if (user) {
-      // Load collaboration requests
-      const requests = getRequestsForEntrepreneur(user.id);
-      setCollaborationRequests(requests);
-    }
+    const loadData = async () => {
+      if (user) {
+        // Load collaboration requests
+        const requests = getRequestsForEntrepreneur(user._id);
+        setCollaborationRequests(requests);
+
+        // Load recommended investors
+        try {
+          const response = await userAPI.getInvestors({ limit: 3 });
+          // API returns {success: true, data: {investors: [...], pagination: {...}}}
+          if (response.data && response.data.data && response.data.data.investors && Array.isArray(response.data.data.investors)) {
+            setRecommendedInvestors(response.data.data.investors.slice(0, 3));
+          } else {
+            console.error('Investors API returned data in unexpected format:', response.data);
+            setRecommendedInvestors([]);
+          }
+        } catch (error) {
+          console.error('Error fetching investors:', error);
+          // Fallback to empty array if API fails
+          setRecommendedInvestors([]);
+        } finally {
+          setLoadingInvestors(false);
+        }
+      }
+    };
+
+    loadData();
   }, [user]);
   
   const handleRequestStatusUpdate = (requestId: string, status: 'accepted' | 'rejected') => {
@@ -160,7 +183,7 @@ export const EntrepreneurDashboard: React.FC = () => {
             <CardBody className="space-y-4">
               {recommendedInvestors.map(investor => (
                 <InvestorCard
-                  key={investor.id}
+                  key={investor._id || investor.id}
                   investor={investor}
                   showActions={false}
                 />

@@ -31,6 +31,9 @@ import { DealsPage } from './pages/deals/DealsPage';
 // Chat Pages
 import { ChatPage } from './pages/chat/ChatPage';
 
+// Video Call Pages
+import { VideoCallPage } from './pages/video/VideoCallPage';
+
 function App() {
   return (
     <AuthProvider>
@@ -91,6 +94,9 @@ function App() {
             <Route index element={<ChatPage />} />
             <Route path=":userId" element={<ChatPage />} />
           </Route>
+
+          {/* Video Call Routes */}
+          <Route path="/call/:roomId" element={<VideoCallPage />} />
           
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />

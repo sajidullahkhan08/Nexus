@@ -35,11 +35,12 @@ const register = async (req, res) => {
     user.refreshTokens.push({ token: refreshToken });
     await user.save();
 
-    // Send welcome email
+    // Send welcome email (don't block registration if email fails)
     try {
       await sendWelcomeEmail(user);
     } catch (emailError) {
-      console.error('Welcome email failed:', emailError);
+      console.error('Welcome email failed:', emailError.message);
+      // Don't throw error - registration should succeed even if email fails
     }
 
     // Remove password from response

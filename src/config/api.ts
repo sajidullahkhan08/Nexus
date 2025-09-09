@@ -1,34 +1,19 @@
 import axios from 'axios';
-import toast from 'react-hot-toast';
 
-// API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Token management
-const getToken = () => localStorage.getItem('accessToken');
-const getRefreshToken = () => localStorage.getItem('refreshToken');
-const setTokens = (accessToken: string, refreshToken: string) => {
-  localStorage.setItem('accessToken', accessToken);
-  localStorage.setItem('refreshToken', refreshToken);
-};
-const clearTokens = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-};
-
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = getToken();
+    const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -39,66 +24,37 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        setTokens(accessToken, newRefreshToken);
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        clearTokens();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('business_nexus_user');
+      window.location.href = '/login';
     }
-
-    // Handle other errors
-    if (error.response?.data?.message) {
-      toast.error(error.response.data.message);
-    } else if (error.message) {
-      toast.error(error.message);
-    }
-
     return Promise.reject(error);
   }
 );
 
-// API endpoints
+// Auth API
 export const authAPI = {
-  register: (userData: any) => api.post('/auth/register', userData),
-  login: (credentials: any) => api.post('/auth/login', credentials),
-  logout: (refreshToken: string) => api.post('/auth/logout', { refreshToken }),
-  refreshToken: (refreshToken: string) => api.post('/auth/refresh-token', { refreshToken }),
-  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),
+  register: (data: any) => api.post('/auth/register', data),
+  login: (data: any) => api.post('/auth/login', data),
+  refreshToken: (data: any) => api.post('/auth/refresh-token', data),
+  logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
+  forgotPassword: (data: any) => api.post('/auth/forgot-password', data),
+  resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),
 };
 
+// User API
 export const userAPI = {
   getUsers: (params?: any) => api.get('/users', { params }),
   getUserById: (id: string) => api.get(`/users/${id}`),
   updateProfile: (data: any) => api.put('/users/profile', data),
-  updateAvatar: (formData: FormData) => api.put('/users/avatar', formData, {
+  updateAvatar: (data: FormData) => api.put('/users/avatar', data, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   getEntrepreneurs: (params?: any) => api.get('/users/entrepreneurs', { params }),
@@ -106,16 +62,50 @@ export const userAPI = {
   deleteAccount: () => api.delete('/users/account'),
 };
 
+// Document API
+export const documentAPI = {
+  getDocuments: (params?: any) => api.get('/documents', { params }),
+  getDocumentById: (id: string) => api.get(`/documents/${id}`),
+  uploadDocument: (data: FormData) => api.post('/documents', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  updateDocument: (id: string, data: any) => api.put(`/documents/${id}`, data),
+  deleteDocument: (id: string) => api.delete(`/documents/${id}`),
+  downloadDocument: (id: string) => api.get(`/documents/${id}/download`, {
+    responseType: 'blob'
+  }),
+  shareDocument: (id: string, data: any) => api.post(`/documents/${id}/share`, data),
+  addSignature: (id: string, data: FormData) => api.post(`/documents/${id}/signature`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+};
+
+// Meeting API
 export const meetingAPI = {
   createMeeting: (data: any) => api.post('/meetings', data),
-  getUserMeetings: (params?: any) => api.get('/meetings', { params }),
+  getMeetings: (params?: any) => api.get('/meetings', { params }),
   getMeetingById: (id: string) => api.get(`/meetings/${id}`),
   updateMeeting: (id: string, data: any) => api.put(`/meetings/${id}`, data),
-  respondToInvitation: (id: string, status: string) => api.put(`/meetings/${id}/respond`, { status }),
+  respondToMeeting: (id: string, data: any) => api.put(`/meetings/${id}/respond`, data),
   joinMeeting: (id: string) => api.post(`/meetings/${id}/join`),
   leaveMeeting: (id: string) => api.post(`/meetings/${id}/leave`),
   deleteMeeting: (id: string) => api.delete(`/meetings/${id}`),
 };
 
-export { api, setTokens, clearTokens, getToken };
+// Utility functions
+export const getToken = () => localStorage.getItem('accessToken');
+export const setToken = (token: string) => localStorage.setItem('accessToken', token);
+export const removeToken = () => localStorage.removeItem('accessToken');
+
+// Token management functions for AuthContext
+export const setTokens = (accessToken: string, refreshToken: string) => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+};
+
+export const clearTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};
+
 export default api;

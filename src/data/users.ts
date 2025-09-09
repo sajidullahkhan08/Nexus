@@ -2,6 +2,7 @@ import { Entrepreneur, Investor } from '../types';
 
 export const entrepreneurs: Entrepreneur[] = [
   {
+    _id: '507f1f77bcf86cd799439012',
     id: 'e1',
     name: 'Sarah Johnson',
     email: 'sarah@techwave.io',
@@ -19,6 +20,7 @@ export const entrepreneurs: Entrepreneur[] = [
     createdAt: '2023-01-15T09:24:00Z'
   },
   {
+    _id: '507f1f77bcf86cd799439013',
     id: 'e2',
     name: 'David Chen',
     email: 'david@greenlife.co',
@@ -36,6 +38,7 @@ export const entrepreneurs: Entrepreneur[] = [
     createdAt: '2022-03-10T14:35:00Z'
   },
   {
+    _id: '507f1f77bcf86cd799439014',
     id: 'e3',
     name: 'Maya Patel',
     email: 'maya@healthpulse.com',
@@ -53,6 +56,7 @@ export const entrepreneurs: Entrepreneur[] = [
     createdAt: '2022-07-22T11:42:00Z'
   },
   {
+    _id: '507f1f77bcf86cd799439015',
     id: 'e4',
     name: 'James Wilson',
     email: 'james@urbanfarm.io',
@@ -73,6 +77,7 @@ export const entrepreneurs: Entrepreneur[] = [
 
 export const investors: Investor[] = [
   {
+    _id: '507f1f77bcf86cd799439011',
     id: 'i1',
     name: 'Michael Rodriguez',
     email: 'michael@vcinnovate.com',
@@ -89,6 +94,7 @@ export const investors: Investor[] = [
     createdAt: '2020-05-18T10:15:00Z'
   },
   {
+    _id: '507f1f77bcf86cd799439016',
     id: 'i2',
     name: 'Jennifer Lee',
     email: 'jennifer@impactvc.org',
@@ -105,6 +111,7 @@ export const investors: Investor[] = [
     createdAt: '2019-08-30T15:40:00Z'
   },
   {
+    _id: '507f1f77bcf86cd799439017',
     id: 'i3',
     name: 'Robert Torres',
     email: 'robert@healthventures.com',
@@ -127,7 +134,7 @@ export const users = [...entrepreneurs, ...investors];
 
 // Helper function to find a user by ID
 export const findUserById = (id: string) => {
-  return users.find(user => user.id === id) || null;
+  return users.find(user => user.id === id || user._id === id) || null;
 };
 
 // Helper function to get a user by role

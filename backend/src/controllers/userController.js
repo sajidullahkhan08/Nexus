@@ -51,7 +51,17 @@ const getUsers = async (req, res) => {
 // Get user by ID
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const id = req.params.id;
+
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+    }
+
+    const user = await User.findById(id)
       .select('-password -refreshTokens -emailVerificationToken -passwordResetToken');
 
     if (!user) {

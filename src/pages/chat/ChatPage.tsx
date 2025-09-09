@@ -7,9 +7,10 @@ import { Input } from '../../components/ui/Input';
 import { ChatMessage } from '../../components/chat/ChatMessage';
 import { ChatUserList } from '../../components/chat/ChatUserList';
 import { useAuth } from '../../context/AuthContext';
-import { Message } from '../../types';
+import { Message, ChatConversation } from '../../types';
 import { findUserById } from '../../data/users';
-import { getMessagesBetweenUsers, sendMessage, getConversationsForUser } from '../../data/messages';
+import { messageAPI } from '../../services/api';
+import socketService from '../../services/socketService';
 import { MessageCircle } from 'lucide-react';
 
 export const ChatPage: React.FC = () => {
@@ -17,47 +18,90 @@ export const ChatPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  
+
   const chatPartner = userId ? findUserById(userId) : null;
-  
+
+  // Load conversations
   useEffect(() => {
-    // Load conversations
-    if (currentUser) {
-      setConversations(getConversationsForUser(currentUser.id));
-    }
+    const loadConversations = async () => {
+      if (!currentUser) return;
+      try {
+        const data = await messageAPI.getConversations();
+        setConversations(data);
+      } catch (error) {
+        console.error('Error loading conversations:', error);
+      }
+    };
+
+    loadConversations();
   }, [currentUser]);
-  
+
+  // Load messages for specific conversation
   useEffect(() => {
-    // Load messages between users
-    if (currentUser && userId) {
-      setMessages(getMessagesBetweenUsers(currentUser.id, userId));
-    }
+    const loadMessages = async () => {
+      if (!currentUser || !userId) return;
+
+      try {
+        const data = await messageAPI.getConversation(userId);
+        setMessages(data);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    };
+
+    loadMessages();
   }, [currentUser, userId]);
-  
+
+  // Socket event listeners
   useEffect(() => {
-    // Scroll to bottom of messages
+    if (!currentUser || !userId) return;
+
+    // Listen for new messages
+    socketService.onNewMessage((message: Message) => {
+      if (message.senderId === userId || message.receiverId === userId) {
+        setMessages(prev => [...prev, message]);
+      }
+    });
+
+    // Listen for message read confirmations
+    socketService.onMessageRead((data: { messageId: string }) => {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === data.messageId ? { ...msg, isRead: true } : msg
+        )
+      );
+    });
+
+    return () => {
+      // Cleanup listeners
+      socketService.off('new_message');
+      socketService.off('message_read');
+    };
+  }, [currentUser, userId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
-  const handleSendMessage = (e: React.FormEvent) => {
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newMessage.trim() || !currentUser || !userId) return;
-    
-    const message = sendMessage({
-      senderId: currentUser.id,
-      receiverId: userId,
-      content: newMessage
-    });
-    
-    setMessages([...messages, message]);
-    setNewMessage('');
-    
-    // Update conversations
-    setConversations(getConversationsForUser(currentUser.id));
+
+    try {
+      // Send message via socket
+      await socketService.sendMessage(userId, newMessage.trim());
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
+
+
   
   if (!currentUser) return null;
   

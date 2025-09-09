@@ -1,35 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { InvestorCard } from '../../components/investor/InvestorCard';
-import { investors } from '../../data/users';
+import { Investor } from '../../types';
+import { userAPI } from '../../config/api';
 
 export const InvestorsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  
+  const [investors, setInvestors] = useState<Investor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvestors = async () => {
+      try {
+        const response = await userAPI.getInvestors();
+        // API returns {success: true, data: {investors: [...], pagination: {...}}}
+        if (response.data && response.data.data && response.data.data.investors && Array.isArray(response.data.data.investors)) {
+          setInvestors(response.data.data.investors);
+        } else {
+          console.error('Investors API returned data in unexpected format:', response.data);
+          setInvestors([]);
+        }
+      } catch (error) {
+        console.error('Error fetching investors:', error);
+        setInvestors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvestors();
+  }, []);
+
   // Get unique investment stages and interests
-  const allStages = Array.from(new Set(investors.flatMap(i => i.investmentStage)));
-  const allInterests = Array.from(new Set(investors.flatMap(i => i.investmentInterests)));
-  
+  const allStages = Array.isArray(investors) && investors.length > 0
+    ? Array.from(new Set(investors.flatMap(i => i.investmentStage || [])))
+    : [];
+  const allInterests = Array.isArray(investors) && investors.length > 0
+    ? Array.from(new Set(investors.flatMap(i => i.investmentInterests || [])))
+    : [];
+
   // Filter investors based on search and filters
   const filteredInvestors = investors.filter(investor => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       investor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       investor.bio.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      investor.investmentInterests.some(interest => 
+      investor.investmentInterests.some(interest =>
         interest.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    
+
     const matchesStages = selectedStages.length === 0 ||
       investor.investmentStage.some(stage => selectedStages.includes(stage));
-    
+
     const matchesInterests = selectedInterests.length === 0 ||
       investor.investmentInterests.some(interest => selectedInterests.includes(interest));
-    
+
     return matchesSearch && matchesStages && matchesInterests;
   });
   
@@ -87,14 +116,17 @@ export const InvestorsPage: React.FC = () => {
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Investment Interests</h3>
                 <div className="flex flex-wrap gap-2">
                   {allInterests.map(interest => (
-                    <Badge
+                    <button
                       key={interest}
-                      variant={selectedInterests.includes(interest) ? 'primary' : 'gray'}
-                      className="cursor-pointer"
                       onClick={() => toggleInterest(interest)}
+                      className="cursor-pointer"
                     >
-                      {interest}
-                    </Badge>
+                      <Badge
+                        variant={selectedInterests.includes(interest) ? 'primary' : 'gray'}
+                      >
+                        {interest}
+                      </Badge>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -142,7 +174,7 @@ export const InvestorsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredInvestors.map(investor => (
               <InvestorCard
-                key={investor.id}
+                key={investor._id || investor.id}
                 investor={investor}
               />
             ))}

@@ -1,6 +1,7 @@
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Message = require('../models/Message');
 
 class SocketService {
   constructor() {
@@ -79,31 +80,49 @@ class SocketService {
     socket.on('send_message', async (data) => {
       try {
         const { receiverId, content, messageType = 'text' } = data;
-        
-        // Create message in database (you'll need to implement this)
-        const message = {
+
+        // Create and save message in database
+        const newMessage = new Message({
           sender: socket.userId,
           receiver: receiverId,
           content,
-          messageType,
-          timestamp: new Date(),
-          isRead: false
-        };
+          messageType
+        });
+
+        const savedMessage = await newMessage.save();
+
+        // Populate sender and receiver for the response
+        await savedMessage.populate('sender', 'name email avatarUrl');
+        await savedMessage.populate('receiver', 'name email avatarUrl');
 
         // Send to receiver if online
-        socket.to(`user_${receiverId}`).emit('new_message', message);
-        
+        socket.to(`user_${receiverId}`).emit('new_message', savedMessage);
+
         // Send confirmation to sender
-        socket.emit('message_sent', { success: true, message });
+        socket.emit('message_sent', { success: true, message: savedMessage });
       } catch (error) {
+        console.error('Error sending message:', error);
         socket.emit('message_error', { error: error.message });
       }
     });
 
     // Mark message as read
-    socket.on('mark_read', (data) => {
-      const { messageId, senderId } = data;
-      socket.to(`user_${senderId}`).emit('message_read', { messageId });
+    socket.on('mark_read', async (data) => {
+      try {
+        const { messageId, senderId } = data;
+
+        // Update message in database
+        await Message.findByIdAndUpdate(messageId, {
+          isRead: true,
+          readAt: new Date()
+        });
+
+        // Notify sender that message was read
+        socket.to(`user_${senderId}`).emit('message_read', { messageId });
+      } catch (error) {
+        console.error('Error marking message as read:', error);
+        socket.emit('message_error', { error: error.message });
+      }
     });
 
     // Typing indicators

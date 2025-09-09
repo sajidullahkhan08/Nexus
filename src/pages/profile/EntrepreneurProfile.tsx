@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MessageCircle, Users, Calendar, Building2, MapPin, UserCircle, FileText, DollarSign } from 'lucide-react';
+import { MessageCircle, Users, Calendar, Building2, MapPin, UserCircle, FileText, DollarSign, Video } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
@@ -8,6 +8,7 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { userAPI } from '../../config/api';
 import { Entrepreneur } from '../../types';
+import { VideoCallButton } from '../../components/video/VideoCallButton';
 
 export const EntrepreneurProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -151,7 +152,7 @@ export const EntrepreneurProfile: React.FC = () => {
           <div className="mt-6 sm:mt-0 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end">
             {!isCurrentUser && (
               <>
-                <Link to={`/chat/${entrepreneur.id}`}>
+                <Link to={`/chat/${entrepreneur._id}`}>
                   <Button
                     variant="outline"
                     leftIcon={<MessageCircle size={18} />}
@@ -159,7 +160,11 @@ export const EntrepreneurProfile: React.FC = () => {
                     Message
                   </Button>
                 </Link>
-                
+
+                <VideoCallButton
+                  targetUserId={entrepreneur._id}
+                  variant="primary"
+                />
               </>
             )}
             
