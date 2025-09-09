@@ -2,9 +2,123 @@
 
 Node.js/Express backend for the Business Nexus platform - connecting entrepreneurs and investors.
 
-## 🚀 Railway Deployment
+## 🚀 Vercel Deployment (Recommended)
 
-This backend is configured for seamless deployment on Railway.
+This backend is configured for seamless deployment on Vercel as serverless functions.
+
+### Prerequisites
+- Vercel account (https://vercel.com)
+- MongoDB Atlas account
+- GitHub repository
+- Frontend deployed at: `https://nexus-1dgt-git-main-sajidullahkhan08s-projects.vercel.app`
+
+### Quick Deploy
+
+1. **Push Backend to GitHub**
+   ```bash
+   git add .
+   git commit -m "Vercel backend deployment"
+   git push origin main
+   ```
+
+2. **Deploy on Vercel**
+   - Go to Vercel Dashboard
+   - Click "New Project"
+   - Connect your GitHub repository
+   - Select the `backend` directory as root
+   - Vercel will auto-detect Node.js and use `vercel.json`
+
+3. **Configure Environment Variables**
+   ```bash
+   # In Vercel Dashboard → Project Settings → Environment Variables
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your-secure-jwt-secret
+   JWT_REFRESH_SECRET=your-secure-refresh-secret
+   FRONTEND_URL=https://nexus-1dgt-git-main-sajidullahkhan08s-projects.vercel.app
+   NODE_ENV=production
+   ```
+
+### Vercel Configuration
+
+The `vercel.json` file contains:
+- **Serverless functions**: API routes in `/api` directory
+- **Build settings**: Node.js 18 runtime
+- **Routes**: API routing and health checks
+- **Environment**: Production configuration
+
+### API Structure
+
+Vercel expects API routes in the `api/` directory:
+```
+backend/
+├── api/
+│   ├── health.js          # Health check endpoint
+│   ├── auth/
+│   │   ├── register.js
+│   │   ├── login.js
+│   │   └── ...
+│   ├── users/
+│   │   ├── index.js
+│   │   └── [id].js
+│   └── ...
+├── vercel.json
+└── package.json
+```
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB Atlas connection string | ✅ |
+| `JWT_SECRET` | JWT signing secret | ✅ |
+| `JWT_REFRESH_SECRET` | JWT refresh token secret | ✅ |
+| `FRONTEND_URL` | Frontend application URL | ✅ |
+| `NODE_ENV` | Environment mode | ❌ |
+
+### CORS Configuration
+
+The backend is pre-configured to accept requests from:
+- `https://nexus-1dgt-git-main-sajidullahkhan08s-projects.vercel.app` (your frontend)
+- Any URL specified in `FRONTEND_URL` environment variable
+
+### File Uploads
+
+- **Serverless limitation**: Vercel has file size limits (5MB)
+- **Alternative**: Use cloud storage (Cloudinary, AWS S3)
+- **Local storage**: Limited to function execution time
+
+### WebSocket Support
+
+- **Serverless limitation**: WebSockets not fully supported
+- **Alternative**: Use Socket.IO with polling fallback
+- **Consider**: Railway or Render for WebSocket features
+
+### Monitoring
+
+Vercel provides:
+- **Real-time logs**: Function execution logs
+- **Analytics**: Request metrics and performance
+- **Error tracking**: Automatic error monitoring
+- **Deployments**: Deployment history and rollback
+
+### Scaling
+
+- **Automatic scaling**: Based on request volume
+- **Cold starts**: Initial request may be slower
+- **Concurrent executions**: Up to 1000 concurrent functions
+- **Timeout**: 30 seconds max execution time
+
+### Cost Optimization
+
+- **Free tier**: 100GB bandwidth, 100 hours runtime
+- **Hobby plan**: $7/month - more resources
+- **Pro plan**: $20/month - advanced features
+
+---
+
+## 🚂 Railway Deployment (Alternative)
+
+This backend can also be deployed on Railway.
 
 ### Prerequisites
 - Railway account (https://railway.app)
