@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -147,20 +147,9 @@ export const InvestorsPage: React.FC = () => {
               
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Location</h3>
-                <div className="space-y-2">
-                  <button className="flex items-center w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50">
-                    <MapPin size={16} className="mr-2" />
-                    San Francisco, CA
-                  </button>
-                  <button className="flex items-center w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50">
-                    <MapPin size={16} className="mr-2" />
-                    New York, NY
-                  </button>
-                  <button className="flex items-center w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50">
-                    <MapPin size={16} className="mr-2" />
-                    Boston, MA
-                  </button>
-                </div>
+                <p className="text-sm text-gray-600">
+                  Location filtering will be available soon. For now, all investors are shown.
+                </p>
               </div>
             </CardBody>
           </Card>

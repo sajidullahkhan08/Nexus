@@ -39,11 +39,19 @@ export const CollaborationRequestCard: React.FC<CollaborationRequestCardProps> =
   };
   
   const handleMessage = () => {
-    navigate(`/chat/${investor.id}`);
+    if (!investor._id) {
+      console.error('Investor missing _id for chat navigation');
+      return;
+    }
+    navigate(`/chat/${investor._id}`);
   };
-  
+
   const handleViewProfile = () => {
-    navigate(`/profile/investor/${investor.id}`);
+    if (!investor._id) {
+      console.error('Investor missing _id for profile navigation');
+      return;
+    }
+    navigate(`/profile/investor/${investor._id}`);
   };
   
   const getStatusBadge = () => {

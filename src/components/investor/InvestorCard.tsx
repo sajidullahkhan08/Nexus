@@ -28,7 +28,11 @@ export const InvestorCard: React.FC<InvestorCardProps> = ({
 
   const handleMessage = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    navigate(`/chat/${investor.id}`);
+    if (!investor._id) {
+      console.error('Investor missing _id for chat navigation');
+      return;
+    }
+    navigate(`/chat/${investor._id}`);
   };
   
   return (

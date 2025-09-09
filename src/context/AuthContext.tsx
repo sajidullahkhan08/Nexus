@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           pitchSummary: 'Building the next big thing',
           fundingNeeded: '$100K',
           industry: 'Technology',
-          location: 'San Francisco, CA',
+          location: '',
           foundedYear: new Date().getFullYear(),
           teamSize: 1
         } : {

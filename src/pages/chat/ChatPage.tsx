@@ -24,6 +24,26 @@ export const ChatPage: React.FC = () => {
 
   const chatPartner = userId ? findUserById(userId) : null;
 
+  // If chatPartner is not found in static data but we have a userId,
+  // create a minimal user object for display purposes
+  const displayChatPartner = chatPartner || (userId ? {
+    _id: userId,
+    id: userId,
+    name: 'User',
+    email: '',
+    role: 'investor' as const,
+    avatarUrl: '',
+    bio: '',
+    isOnline: false,
+    createdAt: new Date().toISOString(),
+    investmentInterests: [],
+    investmentStage: [],
+    portfolioCompanies: [],
+    totalInvestments: 0,
+    minimumInvestment: '',
+    maximumInvestment: ''
+  } : null);
+
   // Load conversations
   useEffect(() => {
     const loadConversations = async () => {
@@ -45,8 +65,35 @@ export const ChatPage: React.FC = () => {
       if (!currentUser || !userId) return;
 
       try {
-        // Find chat partner using the userId from URL (should be short ID like 'i1')
-        const chatPartner = findUserById(userId);
+        // First try to find in static data (for demo users)
+        let chatPartner = findUserById(userId);
+
+        // If not found in static data, assume it's a real database user
+        // and use the userId directly as the ObjectId
+        if (!chatPartner) {
+          console.log('User not found in static data, assuming real database user:', userId);
+          // For real users, we'll need to fetch user data from API
+          // For now, create a minimal user object with required properties
+          chatPartner = {
+            _id: userId,
+            id: userId,
+            name: 'User', // This should be fetched from API
+            email: '',
+            role: 'investor' as const,
+            avatarUrl: '',
+            bio: '',
+            isOnline: false,
+            createdAt: new Date().toISOString(),
+            // Add required investor properties
+            investmentInterests: [],
+            investmentStage: [],
+            portfolioCompanies: [],
+            totalInvestments: 0,
+            minimumInvestment: '',
+            maximumInvestment: ''
+          };
+        }
+
         if (!chatPartner || !chatPartner._id) {
           console.error('Chat partner not found or missing _id for userId:', userId);
           return;
@@ -69,7 +116,7 @@ export const ChatPage: React.FC = () => {
 
     // Get the full ObjectId for the current chat partner
     const chatPartner = findUserById(userId);
-    const chatPartnerObjectId = chatPartner?._id;
+    const chatPartnerObjectId = chatPartner?._id || userId;
 
     // Listen for new messages
     socketService.onNewMessage((message: Message) => {
@@ -109,11 +156,7 @@ export const ChatPage: React.FC = () => {
     try {
       // Map short userId to full ObjectId string
       const receiver = findUserById(userId);
-      if (!receiver) {
-        console.error('Receiver user not found for id:', userId);
-        return;
-      }
-      const receiverId = receiver._id;
+      const receiverId = receiver?._id || userId; // Use userId directly if not found in static data
 
       // Send message via socket with full ObjectId
       await socketService.sendMessage(receiverId, newMessage.trim());
@@ -137,22 +180,22 @@ export const ChatPage: React.FC = () => {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         {/* Chat header */}
-        {chatPartner ? (
+        {displayChatPartner ? (
           <>
             <div className="border-b border-gray-200 p-4 flex justify-between items-center">
               <div className="flex items-center">
                 <Avatar
-                  src={chatPartner.avatarUrl}
-                  alt={chatPartner.name}
+                  src={displayChatPartner.avatarUrl}
+                  alt={displayChatPartner.name}
                   size="md"
-                  status={chatPartner.isOnline ? 'online' : 'offline'}
+                  status={displayChatPartner.isOnline ? 'online' : 'offline'}
                   className="mr-3"
                 />
-                
+
                 <div>
-                  <h2 className="text-lg font-medium text-gray-900">{chatPartner.name}</h2>
+                  <h2 className="text-lg font-medium text-gray-900">{displayChatPartner.name}</h2>
                   <p className="text-sm text-gray-500">
-                    {chatPartner.isOnline ? 'Online' : 'Last seen recently'}
+                    {displayChatPartner.isOnline ? 'Online' : 'Last seen recently'}
                   </p>
                 </div>
               </div>

@@ -120,7 +120,7 @@ export const InvestorProfile: React.FC = () => {
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-3">
                 <Badge variant="primary">
                   <MapPin size={14} className="mr-1" />
-                  San Francisco, CA
+                  {investor.location || 'Location not specified'}
                 </Badge>
                 {investor.investmentStage.map((stage, index) => (
                   <Badge key={index} variant="secondary" size="sm">{stage}</Badge>
@@ -131,7 +131,7 @@ export const InvestorProfile: React.FC = () => {
           
           <div className="mt-6 sm:mt-0 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end">
             {!isCurrentUser && (
-              <Link to={`/chat/${investor.id}`}>
+              <Link to={`/chat/${investor._id}`}>
                 <Button
                   leftIcon={<MessageCircle size={18} />}
                 >

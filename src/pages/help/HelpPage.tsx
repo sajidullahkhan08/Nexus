@@ -133,7 +133,7 @@ export const HelpPage: React.FC = () => {
               <Input
                 label="Email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="Enter your email address"
               />
             </div>
             

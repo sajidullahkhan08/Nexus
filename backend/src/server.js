@@ -192,13 +192,38 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+  process.exit(1);
+});
+
 server.listen(PORT, () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const host = isProduction ? '0.0.0.0' : 'localhost';
+
   console.log(`
 🚀 Nexus Platform Backend Server Started
 📍 Port: ${PORT}
 🌍 Environment: ${process.env.NODE_ENV || 'development'}
-📚 API Docs: http://localhost:${PORT}/api/docs
-💻 Health Check: http://localhost:${PORT}/health
+🏠 Host: ${host}
+📚 API Docs: http://${host}:${PORT}/api/docs
+💻 Health Check: http://${host}:${PORT}/health
+  `);
+
+  // Log important environment variables (without sensitive data)
+  console.log(`
+📊 Configuration:
+   - Database: ${process.env.MONGODB_URI ? 'Connected' : 'Not configured'}
+   - JWT: ${process.env.JWT_SECRET ? 'Configured' : 'Not configured'}
+   - Email: ${process.env.EMAIL_USER ? 'Configured' : 'Not configured'}
+   - Frontend: ${process.env.FRONTEND_URL || 'Not configured'}
   `);
 });
 

@@ -102,7 +102,7 @@ export const SettingsPage: React.FC = () => {
                 
                 <Input
                   label="Location"
-                  defaultValue="San Francisco, CA"
+                  placeholder="Enter your location"
                 />
               </div>
               

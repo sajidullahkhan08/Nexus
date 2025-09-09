@@ -1,279 +1,233 @@
-# Nexus Platform - Full Stack Application
+# Business Nexus Platform
 
-A comprehensive collaboration platform connecting investors and entrepreneurs with real-time communication, meeting scheduling, document management, and secure payment processing.
+A comprehensive platform connecting entrepreneurs and investors for collaboration and growth.
 
 ## 🚀 Features
 
-### Core Functionality
-- **Authentication & Authorization**: JWT-based auth with role-based access control
-- **User Profiles**: Separate dashboards for entrepreneurs and investors
-- **Real-time Chat**: WebSocket-powered messaging system
-- **Video Calling**: WebRTC integration for face-to-face meetings
-- **Meeting Scheduling**: Calendar system with conflict detection
-- **Document Management**: Secure file upload, sharing, and e-signature support
-- **Payment Processing**: Mock payment system with transaction tracking
-- **Security**: Rate limiting, input sanitization, CORS protection
+- **User Authentication**: Secure registration and login for entrepreneurs and investors
+- **Profile Management**: Comprehensive profile creation with role-specific fields
+- **Real-time Chat**: Instant messaging between users
+- **Document Management**: Upload, share, and manage business documents
+- **Meeting Scheduling**: Schedule and manage business meetings
+- **Responsive Design**: Mobile-first design with modern UI
 
-### Tech Stack
+## 🛠️ Tech Stack
 
-**Frontend:**
-- React 18 with TypeScript
-- Tailwind CSS for styling
-- React Router for navigation
-- Socket.IO client for real-time features
-- Axios for API communication
-- React Hot Toast for notifications
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for build tooling
+- **Tailwind CSS** for styling
+- **React Router** for navigation
+- **Axios** for API calls
+- **Socket.IO Client** for real-time features
 
-**Backend:**
-- Node.js with Express.js
-- MongoDB with Mongoose ODM
-- Socket.IO for real-time communication
-- JWT for authentication
-- Multer for file uploads
-- Nodemailer for email services
-- Stripe integration for payments
-- Comprehensive security middleware
+### Backend
+- **Node.js** with Express
+- **MongoDB** with Mongoose
+- **JWT** for authentication
+- **Socket.IO** for real-time communication
+- **Multer** for file uploads
+- **Nodemailer** for email services
 
-## 🏗️ Project Structure
-
-```
-nexus-platform/
-├── src/                    # Frontend React application
-│   ├── components/         # Reusable UI components
-│   ├── pages/             # Page components
-│   ├── context/           # React context providers
-│   ├── services/          # API and socket services
-│   ├── config/            # Configuration files
-│   └── types/             # TypeScript type definitions
-├── backend/               # Backend Node.js application
-│   ├── src/
-│   │   ├── controllers/   # Route handlers
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   ├── middleware/    # Custom middleware
-│   │   ├── services/      # Business logic
-│   │   ├── utils/         # Utility functions
-│   │   └── config/        # Database configuration
-│   └── uploads/           # File storage
-└── docs/                  # Documentation
-```
-
-## 🚀 Quick Start
+## 📦 Installation
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud instance)
-- npm or yarn package manager
+- Node.js 18+
+- MongoDB
+- npm or yarn
 
-### Installation
+### Frontend Setup
+```bash
+# Install dependencies
+npm install
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd nexus-platform
-   ```
+# Copy environment variables
+cp .env.example .env.local
 
-2. **Install dependencies for both frontend and backend**
-   ```bash
-   npm run full:install
-   ```
+# Start development server
+npm run dev
+```
 
-3. **Environment Setup**
-   
-   **Frontend (.env):**
-   ```env
-   VITE_API_URL=http://localhost:5000/api
-   VITE_SOCKET_URL=http://localhost:5000
-   ```
-   
-   **Backend (backend/.env):**
-   ```env
-   PORT=5000
-   NODE_ENV=development
-   MONGODB_URI=mongodb://localhost:27017/nexus-platform
-   JWT_SECRET=your-super-secret-jwt-key-here
-   JWT_REFRESH_SECRET=your-super-secret-refresh-key-here
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   FRONTEND_URL=http://localhost:5173
-   ```
+### Backend Setup
+```bash
+# Navigate to backend directory
+cd backend
 
-4. **Start the development servers**
-   ```bash
-   # Start both frontend and backend concurrently
-   npm run full:dev
-   
-   # Or start them separately:
-   npm run dev              # Frontend only
-   npm run backend:dev      # Backend only
-   ```
+# Install dependencies
+npm install
 
-5. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000/api
-   - API Documentation: http://localhost:5000/api/docs
+# Copy environment variables
+cp .env.example .env
 
-## 📚 API Documentation
-
-### Authentication Endpoints
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - User login
-- `POST /api/auth/refresh-token` - Refresh access token
-- `POST /api/auth/logout` - User logout
-- `POST /api/auth/forgot-password` - Request password reset
-- `POST /api/auth/reset-password` - Reset password
-- `GET /api/auth/me` - Get current user
-
-### User Management
-- `GET /api/users` - Get all users (with filters)
-- `GET /api/users/entrepreneurs` - Get entrepreneurs
-- `GET /api/users/investors` - Get investors
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/profile` - Update user profile
-- `PUT /api/users/avatar` - Update user avatar
-- `DELETE /api/users/account` - Delete user account
-
-### Meeting Management
-- `POST /api/meetings` - Create meeting
-- `GET /api/meetings` - Get user meetings
-- `GET /api/meetings/:id` - Get meeting by ID
-- `PUT /api/meetings/:id` - Update meeting
-- `PUT /api/meetings/:id/respond` - Respond to invitation
-- `POST /api/meetings/:id/join` - Join meeting
-- `POST /api/meetings/:id/leave` - Leave meeting
-- `DELETE /api/meetings/:id` - Delete meeting
-
-## 🔌 WebSocket Events
-
-### Chat Events
-- `send_message` - Send a message
-- `new_message` - Receive a message
-- `mark_read` - Mark message as read
-- `typing_start` / `typing_stop` - Typing indicators
-
-### Video Call Events
-- `join_call` / `leave_call` - Call management
-- `offer` / `answer` / `ice_candidate` - WebRTC signaling
-- `toggle_audio` / `toggle_video` - Media controls
-
-### Meeting Events
-- `join_meeting` / `leave_meeting` - Meeting room management
-- `participant_joined` / `participant_left` - Participant updates
-- `start_screen_share` / `stop_screen_share` - Screen sharing
-- `meeting_message` - Meeting chat
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based authentication with refresh tokens
-- **Rate Limiting**: Prevents API abuse with configurable limits
-- **Input Sanitization**: Removes XSS attempts and malicious input
-- **CORS Protection**: Configured for specific frontend domains
-- **Password Hashing**: bcrypt with configurable salt rounds
-- **Security Headers**: Helmet.js for security headers
-- **Role-based Authorization**: Separate permissions for entrepreneurs and investors
+# Start development server
+npm run dev
+```
 
 ## 🚀 Deployment
 
 ### Frontend (Vercel)
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
 
-### Backend (Render/Railway)
+1. **Connect Repository**
+   - Push code to GitHub
+   - Connect repository to Vercel
 
-**Render:**
-1. Connect GitHub repository
-2. Set environment variables
-3. Deploy with automatic builds
+2. **Environment Variables**
+   ```bash
+   VITE_API_URL=https://your-render-app.onrender.com/api
+   VITE_SOCKET_URL=https://your-render-app.onrender.com
+   ```
 
-**Railway:**
-1. Connect repository
-2. Configure environment variables
-3. Deploy with one-click deployment
+3. **Deploy**
+   ```bash
+   npm run deploy:vercel
+   ```
 
-### Environment Variables for Production
+### Backend (Render)
 
-**Frontend:**
-```env
-VITE_API_URL=https://your-backend-domain.com/api
-VITE_SOCKET_URL=https://your-backend-domain.com
+1. **Connect Repository**
+   - Push backend code to GitHub
+   - Connect repository to Render
+
+2. **Environment Variables**
+   ```bash
+   NODE_ENV=production
+   PORT=10000
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your-jwt-secret
+   JWT_REFRESH_SECRET=your-refresh-secret
+   FRONTEND_URL=https://your-vercel-app.vercel.app
+   ```
+
+3. **Build Settings**
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+
+## 🔧 Environment Variables
+
+### Frontend (.env.local)
+```bash
+VITE_API_URL=http://localhost:5000/api
+VITE_SOCKET_URL=http://localhost:5000
+VITE_APP_NAME=Business Nexus
 ```
 
-**Backend:**
-```env
-NODE_ENV=production
+### Backend (.env)
+```bash
+NODE_ENV=development
 PORT=5000
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/nexus-platform
-JWT_SECRET=your-production-jwt-secret
-FRONTEND_URL=https://your-frontend-domain.com
+MONGODB_URI=mongodb://localhost:27017/nexus-platform
+JWT_SECRET=your-super-secret-jwt-key
+JWT_REFRESH_SECRET=your-super-secret-refresh-key
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+FRONTEND_URL=http://localhost:5173
 ```
+
+## 📁 Project Structure
+
+```
+├── src/
+│   ├── components/          # Reusable UI components
+│   ├── pages/              # Page components
+│   ├── context/            # React context providers
+│   ├── services/           # API and utility services
+│   ├── types/              # TypeScript type definitions
+│   └── config/             # Configuration files
+├── backend/
+│   ├── src/
+│   │   ├── controllers/    # Route controllers
+│   │   ├── models/         # MongoDB models
+│   │   ├── routes/         # API routes
+│   │   ├── middleware/     # Express middleware
+│   │   └── utils/          # Utility functions
+│   └── uploads/            # File uploads directory
+└── public/                 # Static assets
+```
+
+## 🔐 Authentication
+
+The platform uses JWT tokens for authentication with the following flow:
+
+1. User registers/logs in
+2. Server returns access and refresh tokens
+3. Access token stored in localStorage
+4. Automatic token refresh on expiration
+5. Secure logout removes all tokens
+
+## 📡 Real-time Features
+
+- **WebSocket Connection**: Socket.IO for real-time communication
+- **Live Chat**: Instant messaging between users
+- **Online Status**: Real-time user presence indicators
+- **Typing Indicators**: Live typing status in chat
+
+## 🗄️ Database Schema
+
+### User Model
+- Basic info: name, email, password, role
+- Profile: bio, avatar, location
+- Entrepreneur fields: startupName, pitchSummary, fundingNeeded, industry
+- Investor fields: investmentInterests, investmentStage, portfolioCompanies
+- Security: refreshTokens, email verification, 2FA
+
+### Other Models
+- Messages, Meetings, Documents, Collaborations
 
 ## 🧪 Testing
 
 ```bash
-# Frontend tests
-npm test
+# Run frontend tests
+npm run test
 
-# Backend tests
-cd backend && npm test
+# Run backend tests
+cd backend && npm run test
 
-# Run tests with coverage
-npm run test:coverage
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
 ```
 
-## 📱 Demo Flow
+## 📈 Performance
 
-1. **Registration/Login**: Create account as entrepreneur or investor
-2. **Profile Setup**: Complete profile with role-specific information
-3. **Discovery**: Browse and search for potential collaborators
-4. **Connection**: Send collaboration requests
-5. **Communication**: Real-time chat and messaging
-6. **Meeting Scheduling**: Schedule and join video meetings
-7. **Document Sharing**: Upload and share business documents
-8. **E-signatures**: Sign documents electronically
-9. **Payment Processing**: Handle transactions and payments
-10. **Dashboard Management**: Track all activities and connections
+- **Code Splitting**: Automatic chunk splitting for optimal loading
+- **Lazy Loading**: Components loaded on demand
+- **Image Optimization**: Automatic image compression
+- **Caching**: Efficient caching strategies
+- **Compression**: Gzip compression enabled
+
+## 🔒 Security
+
+- **HTTPS**: SSL/TLS encryption
+- **CORS**: Cross-origin resource sharing protection
+- **Helmet**: Security headers
+- **Rate Limiting**: API rate limiting
+- **Input Validation**: Comprehensive input sanitization
+- **JWT Security**: Secure token handling
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 📞 Support
 
-For support and questions:
-- Create an issue in the GitHub repository
-- Email: support@nexusplatform.com
-- Documentation: [API Docs](http://localhost:5000/api/docs)
+For support, email support@businessnexus.com or join our Discord community.
 
-## 🔄 Development Workflow
+## 🔄 API Documentation
 
-### Adding New Features
-
-1. **Backend First**: Create models, controllers, and routes
-2. **API Testing**: Test endpoints with Postman or similar
-3. **Frontend Integration**: Update services and components
-4. **Real-time Features**: Add Socket.IO events if needed
-5. **Testing**: Write and run tests
-6. **Documentation**: Update API docs and README
-
-### Code Quality
-
-- ESLint and Prettier for code formatting
-- TypeScript for type safety
-- Comprehensive error handling
-- Input validation and sanitization
-- Security best practices
+API documentation is available at `/api/docs` when the backend is running.
 
 ---
 
-Built with ❤️ for the startup ecosystem
+**Built with ❤️ for entrepreneurs and investors worldwide**

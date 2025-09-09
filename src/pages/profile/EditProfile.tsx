@@ -10,7 +10,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import toast from 'react-hot-toast';
 
 export const EditProfile: React.FC = () => {
-  const { user, updateProfile, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -307,7 +307,7 @@ export const EditProfile: React.FC = () => {
                 value={formData.location}
                 onChange={handleInputChange}
                 startAdornment={<MapPin size={18} />}
-                placeholder="e.g., San Francisco, CA"
+                placeholder="Enter your location"
               />
             </div>
 
