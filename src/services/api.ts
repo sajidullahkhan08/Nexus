@@ -27,13 +27,13 @@ export const messageAPI = {
 
   // Get all conversations for current user
   getConversations: async () => {
-    const response = await api.get('/messages/conversations');
+    const response = await api.get('/messages/conversation-list');
     return response.data;
   },
 
   // Mark message as read
   markAsRead: async (messageId: string) => {
-    const response = await api.put(`/messages/read/${messageId}`);
+    const response = await api.put(`/messages/mark-read/${messageId}`);
     return response.data;
   },
 };

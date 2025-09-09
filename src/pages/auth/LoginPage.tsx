@@ -31,17 +31,7 @@ export const LoginPage: React.FC = () => {
     }
   };
   
-  // For demo purposes, pre-filled credentials
-  const fillDemoCredentials = (userRole: UserRole) => {
-    if (userRole === 'entrepreneur') {
-      setEmail('sarah@techwave.io');
-      setPassword('password123');
-    } else {
-      setEmail('michael@vcinnovate.com');
-      setPassword('password123');
-    }
-    setRole(userRole);
-  };
+
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -154,34 +144,7 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
           
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo Accounts</span>
-              </div>
-            </div>
-            
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={() => fillDemoCredentials('entrepreneur')}
-                leftIcon={<Building2 size={16} />}
-              >
-                Entrepreneur Demo
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => fillDemoCredentials('investor')}
-                leftIcon={<CircleDollarSign size={16} />}
-              >
-                Investor Demo
-              </Button>
-            </div>
-          </div>
+
           
           <div className="mt-6">
             <div className="relative">

@@ -45,7 +45,11 @@ export const ChatPage: React.FC = () => {
       if (!currentUser || !userId) return;
 
       try {
-        const data = await messageAPI.getConversation(userId);
+        // Map short userId to full ObjectId for API call
+        const chatPartner = findUserById(userId);
+        if (!chatPartner) return;
+
+        const data = await messageAPI.getConversation(chatPartner._id);
         setMessages(data);
       } catch (error) {
         console.error('Error loading messages:', error);
@@ -59,9 +63,15 @@ export const ChatPage: React.FC = () => {
   useEffect(() => {
     if (!currentUser || !userId) return;
 
+    // Get the full ObjectId for the current chat partner
+    const chatPartner = findUserById(userId);
+    const chatPartnerObjectId = chatPartner?._id;
+
     // Listen for new messages
     socketService.onNewMessage((message: Message) => {
-      if (message.senderId === userId || message.receiverId === userId) {
+      // Check if message involves the current chat partner using both short and full IDs
+      if (message.senderId === userId || message.receiverId === userId ||
+          message.senderId === chatPartnerObjectId || message.receiverId === chatPartnerObjectId) {
         setMessages(prev => [...prev, message]);
       }
     });
@@ -93,8 +103,16 @@ export const ChatPage: React.FC = () => {
     if (!newMessage.trim() || !currentUser || !userId) return;
 
     try {
-      // Send message via socket
-      await socketService.sendMessage(userId, newMessage.trim());
+      // Map short userId to full ObjectId string
+      const receiver = findUserById(userId);
+      if (!receiver) {
+        console.error('Receiver user not found for id:', userId);
+        return;
+      }
+      const receiverId = receiver._id;
+
+      // Send message via socket with full ObjectId
+      await socketService.sendMessage(receiverId, newMessage.trim());
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -173,7 +191,7 @@ export const ChatPage: React.FC = () => {
                     <ChatMessage
                       key={message.id}
                       message={message}
-                      isCurrentUser={message.senderId === currentUser.id}
+                      isCurrentUser={message.senderId === currentUser.id || message.senderId === currentUser._id}
                     />
                   ))}
                   <div ref={messagesEndRef} />

@@ -3,6 +3,28 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Message = require('../models/Message');
 
+// Mock user data mapping for short IDs to full ObjectIds
+// This should ideally come from the database in a real application
+const userIdMapping = {
+  'e1': '507f1f77bcf86cd799439012',
+  'e2': '507f1f77bcf86cd799439013',
+  'e3': '507f1f77bcf86cd799439014',
+  'e4': '507f1f77bcf86cd799439015',
+  'i1': '507f1f77bcf86cd799439011',
+  'i2': '507f1f77bcf86cd799439016',
+  'i3': '507f1f77bcf86cd799439017'
+};
+
+// Helper function to get full ObjectId from short ID or return the ID if it's already an ObjectId
+const getFullUserId = (userId) => {
+  // If it's a short ID (like 'e1', 'i2'), map it to full ObjectId
+  if (userIdMapping[userId]) {
+    return userIdMapping[userId];
+  }
+  // If it's already a full ObjectId or other format, return as is
+  return userId;
+};
+
 class SocketService {
   constructor() {
     this.io = null;
